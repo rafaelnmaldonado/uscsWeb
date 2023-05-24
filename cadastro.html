@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="Cadastro de Alunos" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Alunos</title>
+    <style>
+        body {
+            padding-top: 5%;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #CFDFEF, #7BD);
+            font-family: Arial, sans-serif;
+        }
+
+        .button {
+            border: none;
+            border-radius: 5px;
+            color: white;
+            padding: 8px 15px;
+            text-align: center;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            background-color: #5AC;
+            transition: background-color 0.2s ease;
+        }
+
+        .button:hover {
+            background-color: #38A;
+        }
+
+        .button-cadastro {
+            padding: 10px 20px;
+            background-color: #279;
+        }
+
+        .button-cadastro:hover {
+            background-color: #057;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .container-botoes {
+            padding-bottom: 15px;
+        }
+
+        .container-output {
+            width: 650px;
+            max-height: 60vh;
+            overflow-y: auto;
+            justify-content: center;
+        }
+
+        .container-rodape {
+            display: flex;
+            text-align: left;
+            color: #057;
+            font-weight: bold;
+        }
+
+        #contador-alunos {
+            flex: 1;
+        }
+
+        #media-idades {
+            flex: 1;
+            text-align: right;
+        }
+
+        .form-cadastrar {
+            padding-bottom: 10px;
+        }
+
+        .input {
+            padding: 7px 10px;
+            margin: 0px 2px 0px 2px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .input-matricula {
+            width: 80px;
+        }
+
+        .input-nome {
+            width: 250px;
+        }
+
+        .input-idade {
+            width: 50px;
+        }
+
+        table {
+            text-align: left;
+            font-size: 16px;
+            width: 100%;
+            border-spacing: 0;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #DEEFF9;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: white;
+        }
+
+        .table-cabecalho {
+            position: sticky;
+            top: 0;
+            background-color: #057;
+        }
+
+        td {
+            color: #789;
+            padding: 5px 8px 5px 8px;
+
+        }
+
+        th {
+            color: white;
+            padding: 8px;
+        }
+
+        .th-matricula {
+            width: 15%;
+        }
+
+        .th-nome {
+            border: 1px #046;
+            width: 65%;
+        }
+
+        .th-idade {
+            width: 10%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form class="form-cadastrar">
+            <input type="text" class="input input-matricula" maxlength="8" id="matricula" placeholder="Matrícula">
+            <input type="text" class="input input-nome" maxlength="100" id="nome" placeholder="Nome">
+            <input type="text" class="input input-idade" maxlength="3" id="idade" placeholder="Idade">
+            <button class="button button-cadastro" onclick="cadastrarAluno()">Cadastrar</button>
+        </form>
+        <div class="container-botoes">
+            <button class="button" onclick="ordenarPorNome()">Ordem de Nome</button>
+            <button class="button" onclick="ordenarPorMatricula()">Ordem de Matrícula</button>
+            <button class="button" onclick="ordenarPorCadastro()">Ordem de Chegada</button>
+            <button class="button" onclick="ordenarPorCadastro(sobrenome = true)">Sobrenome</button>
+        </div>
+        <div class="container-output">
+            <table>
+                <thead class="table-cabecalho">
+                    <tr>
+                        <th class="th-matricula">Matrícula</th>
+                        <th class="th-nome">Nome</th>
+                        <th class="th-idade">Idade</th>
+                    </tr>
+                </thead>
+                <tbody id="table-conteudo">
+                    <tr class="paciente" id="primeiro-paciente">
+                        <td class="info-matricula">000000-0</td>
+                        <td class="info-nome">Aaa</td>
+                        <td class="info-idade">0</td>
+                    </tr>
+                    <tr class="paciente" id="primeiro-paciente">
+                        <td class="info-matricula">000000-0</td>
+                        <td class="info-nome">Aaa</td>
+                        <td class="info-idade">0</td>
+                    </tr>
+                    <tr class="paciente" id="primeiro-paciente">
+                        <td class="info-matricula">000000-0</td>
+                        <td class="info-nome">Aaa</td>
+                        <td class="info-idade">0</td>
+                    </tr>
+                    <tr class="paciente" id="primeiro-paciente">
+                        <td class="info-matricula">000000-0</td>
+                        <td class="info-nome">Aaa</td>
+                        <td class="info-idade">0</td>
+                    </tr>
+                    <tr class="paciente" id="primeiro-paciente">
+                        <td class="info-matricula">000000-0</td>
+                        <td class="info-nome">Aaa</td>
+                        <td class="info-idade">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="container-rodape">
+            <p id="contador-alunos">Total de Alunos: </p>
+            <p id="media-idades">Média de Idade: </p>
+        </div>
+    </div>
+
+    <script>
+        document.onload = carregarDados();
+
+        var matricula = document.getElementById('matricula');
+        var idade = document.getElementById('idade');
+
+        idade.addEventListener('input', function (event) {
+            var idadeInserida = buscarNumeroValidado(event.target.value);
+            if (idadeInserida.length > 0) {
+                var idadeMaxima = 100;
+                var idade = parseInt(idadeInserida);
+                if (idade > idadeMaxima) {
+                    idadeInserida = idadeMaxima.toString();
+                }
+            }
+            event.target.value = idadeInserida;
+        });
+
+        matricula.addEventListener('input', function (event) {
+            var matriculaInserida = event.target.value;
+            if (matriculaInserida.length < 7) {
+                matriculaInserida = buscarNumeroValidado(event.target.value.substring(0, 6));
+            } else if (matriculaInserida.length == 7) {
+                matriculaInserida = matriculaInserida.substring(0, 6) + "-" + buscarNumeroValidado(matriculaInserida.substring(6, 7));
+                if (matriculaInserida.length == 7) {
+                    matriculaInserida = matriculaInserida.substring(0, 6);
+                }
+            }
+            event.target.value = matriculaInserida;
+        });
+
+        function buscarNumeroValidado(numero) {
+            return isNaN(Number(numero)) ? numero.substring(0, numero.length - 1) : numero;
+        }
+
+        function carregarDados() {
+
+        }
+
+        function cadastrarAluno() {
+
+        }
+
+        function ordenarPorNome() {
+
+        }
+
+        function ordenarPorMatricula() {
+
+        }
+
+        var sobrenome;
+        function ordenarPorCadastro() {
+            if (sobrenome) {
+                alert("SOBRENOME");
+                sobrenome = false;
+                return;
+            }
+            alert("SEM SOBRENOME")
+        }
+    </script>
+</body>
+
+</html>
