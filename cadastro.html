@@ -15,7 +15,7 @@
             font-family: Arial, sans-serif;
         }
 
-        .button {
+        button {
             border: none;
             border-radius: 5px;
             color: white;
@@ -29,7 +29,7 @@
             transition: background-color 0.2s ease;
         }
 
-        .button:hover {
+        button:hover {
             background-color: #38A;
         }
 
@@ -42,22 +42,30 @@
             background-color: #057;
         }
 
+        .button-form {
+            padding: 0px 0px;
+            width: 30px;
+            height: 30px;
+            background-color: #057;
+            font-size: 26px;
+        }
+
         .container {
             text-align: center;
         }
 
-        .container-botoes {
+        #container-botoes {
             padding-bottom: 15px;
         }
 
-        .container-output {
+        #container-output {
             width: 650px;
             max-height: 60vh;
             overflow-y: auto;
             justify-content: center;
         }
 
-        .container-rodape {
+        #container-rodape {
             display: flex;
             text-align: left;
             color: #057;
@@ -68,16 +76,16 @@
             flex: 1;
         }
 
-        #media-idades {
-            flex: 1;
-            text-align: right;
+        .espaco {
+            min-width: 185px;
+            float: right;
         }
 
         .form-cadastrar {
             padding-bottom: 10px;
         }
 
-        .input {
+        input {
             padding: 7px 10px;
             margin: 0px 2px 0px 2px;
             font-size: 14px;
@@ -95,6 +103,11 @@
 
         .input-idade {
             width: 50px;
+        }
+
+        #media-idades {
+            flex: 1;
+            text-align: right;
         }
 
         table {
@@ -146,19 +159,23 @@
 
 <body>
     <div class="container">
-        <form class="form-cadastrar">
-            <input type="text" class="input input-matricula" maxlength="8" id="matricula" placeholder="Matrícula">
-            <input type="text" class="input input-nome" maxlength="100" id="nome" placeholder="Nome">
-            <input type="text" class="input input-idade" maxlength="3" id="idade" placeholder="Idade">
-            <button class="button button-cadastro" onclick="cadastrarAluno()">Cadastrar</button>
-        </form>
-        <div class="container-botoes">
-            <button class="button" onclick="ordenarPorNome()">Ordem de Nome</button>
-            <button class="button" onclick="ordenarPorMatricula()">Ordem de Matrícula</button>
-            <button class="button" onclick="ordenarPorCadastro()">Ordem de Chegada</button>
-            <button class="button" onclick="ordenarPorCadastro(sobrenome = true)">Sobrenome</button>
+        <div id="container-input">
+            <form class="form-cadastrar">
+                <input type="text" class="input-matricula" maxlength="8" id="matricula" placeholder="Matrícula">
+                <input type="text" class="input-nome" maxlength="100" id="nome" placeholder="Nome">
+                <input type="text" class="input-idade" maxlength="3" id="idade" placeholder="Idade">
+                <button class="button-form" id="btn-adicionar-form">+</button>
+                <button class="button-form" id="btn-remover-form">-</button>
+                <button class="button-cadastro" id="btn-cadastrar">Cadastrar</button>
+            </form>
         </div>
-        <div class="container-output">
+        <div id="container-botoes">
+            <button id="btn-ordernar-nome">Ordem de Nome</button>
+            <button id="btn-ordernar-matricula">Ordem de Matrícula</button>
+            <button id="btn-ordernar-cadastro">Ordem de Chegada</button>
+            <button id="btn-ordernar-sobrenome">Sobrenome</button>
+        </div>
+        <div id="container-output">
             <table>
                 <thead class="table-cabecalho">
                     <tr>
@@ -168,49 +185,74 @@
                     </tr>
                 </thead>
                 <tbody id="table-conteudo">
-                    <tr class="paciente" id="primeiro-paciente">
-                        <td class="info-matricula">000000-0</td>
-                        <td class="info-nome">Aaa</td>
-                        <td class="info-idade">0</td>
-                    </tr>
-                    <tr class="paciente" id="primeiro-paciente">
-                        <td class="info-matricula">000000-0</td>
-                        <td class="info-nome">Aaa</td>
-                        <td class="info-idade">0</td>
-                    </tr>
-                    <tr class="paciente" id="primeiro-paciente">
-                        <td class="info-matricula">000000-0</td>
-                        <td class="info-nome">Aaa</td>
-                        <td class="info-idade">0</td>
-                    </tr>
-                    <tr class="paciente" id="primeiro-paciente">
-                        <td class="info-matricula">000000-0</td>
-                        <td class="info-nome">Aaa</td>
-                        <td class="info-idade">0</td>
-                    </tr>
-                    <tr class="paciente" id="primeiro-paciente">
-                        <td class="info-matricula">000000-0</td>
-                        <td class="info-nome">Aaa</td>
-                        <td class="info-idade">0</td>
-                    </tr>
+
                 </tbody>
             </table>
         </div>
-
-        <div class="container-rodape">
-            <p id="contador-alunos">Total de Alunos: </p>
-            <p id="media-idades">Média de Idade: </p>
+        <div id="container-rodape">
+            <p id="contador-alunos"></p>
+            <p id="media-idades" hidden></p>
         </div>
     </div>
 
     <script>
-        document.onload = carregarDados();
+        //document.onload = carregarDados(); // pesquisar no banco
 
-        var matricula = document.getElementById('matricula');
-        var idade = document.getElementById('idade');
+        // Listeners
 
-        idade.addEventListener('input', function (event) {
-            var idadeInserida = buscarNumeroValidado(event.target.value);
+        var registros = [];
+        var form;
+        var idade = document.getElementById("idade");
+        var matricula = document.getElementById("matricula");
+        var btnCadastrar = document.querySelector("#btn-cadastrar");
+        var btnAdicionarForm = document.querySelector("#btn-adicionar-form");
+        var btnRemoverForm = document.querySelector("#btn-remover-form");
+        var btnOrdemNome = document.querySelector("#btn-ordernar-nome");
+        var btnOrdemMatricula = document.querySelector("#btn-ordernar-matricula");
+        var btnOrdemCadastro = document.querySelector("#btn-ordernar-cadastro");
+        var btnOrdemSobrenome = document.querySelector("#btn-ordernar-sobrenome");
+
+        idade.addEventListener("input", function (event) {
+            validarIdade(event);
+        });
+
+        matricula.addEventListener("input", function (event) {
+            formatarMatricula(event);
+        });
+
+        btnCadastrar.addEventListener("click", function (event) {
+            cadastrarAluno(event);
+        });
+
+        btnAdicionarForm.addEventListener("click", function (event) {
+            adicionarFormulario(event);
+        });
+
+        btnRemoverForm.addEventListener("click", function (event) {
+            removerFormulario(event);
+        });
+
+        btnOrdemNome.addEventListener("click", function (event) {
+            ordernarPorNome(event);
+        });
+
+        btnOrdemMatricula.addEventListener("click", function (event) {
+            ordernarPorMatricula(event);
+        });
+
+        btnOrdemCadastro.addEventListener("click", function (event) {
+            ordernarPorCadastro(event);
+        });
+
+        btnOrdemSobrenome.addEventListener("click", function (event) {
+            ordernarPorSobrenome(event);
+        });
+
+
+        // Eventos
+
+        function validarIdade(event) {
+            var idadeInserida = buscarNumeroValidado(event.target.value.trim());
             if (idadeInserida.length > 0) {
                 var idadeMaxima = 100;
                 var idade = parseInt(idadeInserida);
@@ -219,50 +261,241 @@
                 }
             }
             event.target.value = idadeInserida;
-        });
+        }
 
-        matricula.addEventListener('input', function (event) {
-            var matriculaInserida = event.target.value;
-            if (matriculaInserida.length < 7) {
-                matriculaInserida = buscarNumeroValidado(event.target.value.substring(0, 6));
+        function formatarMatricula(event) {
+            var matriculaInserida = event.target.value.trim();
+            if (matriculaInserida.length == 8) {
+                matriculaInserida = matriculaInserida.substring(0, 6) + "-" + matriculaInserida.substring(7, 8);
+            } else if (matriculaInserida.length < 7) {
+                matriculaInserida = buscarNumeroValidado(matriculaInserida.substring(0, 6));
             } else if (matriculaInserida.length == 7) {
-                matriculaInserida = matriculaInserida.substring(0, 6) + "-" + buscarNumeroValidado(matriculaInserida.substring(6, 7));
+                matriculaInserida = matriculaInserida.substring(0, 6) + "-" + buscarNumeroValidado(matriculaInserida.substring(6));
                 if (matriculaInserida.length == 7) {
                     matriculaInserida = matriculaInserida.substring(0, 6);
                 }
             }
             event.target.value = matriculaInserida;
-        });
+        }
+
+        function cadastrarAluno(event) {
+            event.preventDefault();
+            matriculas = "";
+            form = document.querySelectorAll(".form-cadastrar");
+            try {
+                validarDadosFormulario(form);
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
+            for (let i = 0; i < form.length; i++) {
+                let dadosAluno = obterDadosFormulario(form[i]);
+                try {
+                    validarDadosAluno(dadosAluno);
+                } catch (e) {
+                    if (e.message.indexOf("VAZIO") >= 0) {
+                        continue;
+                    } else {
+                        alert(e.message);
+                        return;
+                    }
+                }
+                /* Função para gravar no banco de dados vai ser invocada aqui
+                 * A alimentação do array "registros" é temporária; ele vai ser alimentado
+                 * na função de busca no banco de dados */
+                registros[registros.length] = dadosAluno;
+            };
+            carregarDados();
+        }
+
+        function adicionarFormulario(event) {
+            event.preventDefault();
+            var conteudoContainer = document.querySelectorAll(".form-cadastrar");
+            if (conteudoContainer.length == 5) {
+                return;
+            }
+            document.getElementById("container-input").appendChild(montarFormulario());
+        }
+
+        function removerFormulario(event) {
+            event.preventDefault();
+            var conteudoContainer = document.querySelectorAll(".form-cadastrar");
+            if (conteudoContainer.length == 1) {
+                return;
+            }
+            var containerFormularios = document.getElementById("container-input");
+            var formularios = [];
+            for (var i = conteudoContainer.length - 2; i >= 0; i--) {
+                formularios.push(conteudoContainer[i]);
+            }
+            removerFilhos(containerFormularios);
+            for (var i = formularios.length - 1; i >= 0; i--) {
+                containerFormularios.appendChild(formularios[i]);
+            }
+        }
+
+        function ordernarPorNome(event) {
+            document.getElementById("media-idades").style.display = "none";
+
+            //
+        }
+
+        function ordernarPorMatricula(event) {
+            document.getElementById("media-idades").style.display = "none";
+
+            //
+        }
+
+        function ordernarPorCadastro(event) {
+            document.getElementById("media-idades").style.display = "none";
+
+            //
+        }
+
+        function ordernarPorSobrenome(event) {
+            document.getElementById("media-idades").style.display = "block";
+
+            //
+        }
+
+
+        // Funcionalidades
+
+        function carregarDados() {
+            var conteudoTabela = document.querySelector("#table-conteudo");
+            var somaIdade = 0;
+            removerFilhos(conteudoTabela);
+            for (let i = 0; i < registros.length; i++) {
+                var dadosAluno = registros[i];
+                var alunoTr = montarTr(dadosAluno);
+                conteudoTabela.appendChild(alunoTr);
+                somaIdade += parseInt(dadosAluno.idade);
+            };
+            if (registros.length > 0) {
+                document.getElementById("contador-alunos").innerHTML = "Total de Alunos: " + registros.length;
+                document.getElementById("media-idades").innerHTML = "Média de Idades: "
+                    + (registros.length > 0 ? (somaIdade / registros.length).toFixed(2) : 0);
+            }
+        }
+
+
+        // Utilidades
 
         function buscarNumeroValidado(numero) {
             return isNaN(Number(numero)) ? numero.substring(0, numero.length - 1) : numero;
         }
 
-        function carregarDados() {
-
-        }
-
-        function cadastrarAluno() {
-
-        }
-
-        function ordenarPorNome() {
-
-        }
-
-        function ordenarPorMatricula() {
-
-        }
-
-        var sobrenome;
-        function ordenarPorCadastro() {
-            if (sobrenome) {
-                alert("SOBRENOME");
-                sobrenome = false;
-                return;
+        function obterDadosFormulario(formAluno) {
+            var dadosAluno = {
+                matricula: formAluno.matricula.value.trim().replace("-", ""),
+                nome: formAluno.nome.value.trim(),
+                idade: formAluno.idade.value
             }
-            alert("SEM SOBRENOME")
+            return dadosAluno;
         }
+
+        function removerFilhos(elemento) {
+            while (elemento.firstChild) {
+                elemento.firstChild.remove();
+            }
+        }
+
+        function validarDadosAluno(dadosAluno) {
+            if (dadosAluno.matricula.length == 0 && dadosAluno.nome.length == 0
+                && dadosAluno.idade.length == 0) {
+                throw new Error("VAZIO");
+            }
+            if (dadosAluno.matricula.length > 0 && dadosAluno.matricula.length < 7) {
+                throw new Error("ERRO: Matrícula inválida. Necessário que sejam 8 dígitos.");
+            }
+            if (dadosAluno.matricula.length == 0 || dadosAluno.nome.length == 0
+                || dadosAluno.idade.length == 0) {
+                throw new Error("ERRO: Cadastro incompleto.");
+            }
+            var conteudoTabela = document.querySelectorAll(".tr-dados");
+            for (let i = 0; i < conteudoTabela.length; i++) {
+                let matricula = conteudoTabela[i].querySelector(".info-matricula").textContent;
+                let matriculaInserida = dadosAluno.matricula.substring(0, 6) + "-" + dadosAluno.matricula.substring(6);
+                if (matricula == matriculaInserida) {
+                    throw new Error(`ERRO: Aluno com a matrícula ${matriculaInserida} já está cadastrado.`);
+                }
+            }
+        }
+
+        function validarDadosFormulario(form) {
+            let matriculas = "";
+            for (let i = 0; i < form.length; i++) {
+                let dadosAluno = obterDadosFormulario(form[i]);
+                if (dadosAluno.matricula.length == 0) {
+                    continue;
+                }
+                if (matriculas.indexOf(dadosAluno.matricula) >= 0) {
+                    let matriculaInserida = dadosAluno.matricula.substring(0, 6) + "-" + dadosAluno.matricula.substring(6);
+                    throw new Error(`ERRO: Matrícula ${matriculaInserida} não pode ser cadastrada mais de uma vez.`);
+                }
+                matriculas += dadosAluno.matricula + ",";
+            }
+        }
+
+        function montarTr(dadosAluno) {
+            var alunoTr = document.createElement("tr");
+            alunoTr.classList.add("tr-dados");
+            let matricula = dadosAluno.matricula.substring(0, 6) + "-" + dadosAluno.matricula.substring(6);
+            alunoTr.appendChild(montarTd(matricula, "info-matricula"));
+            alunoTr.appendChild(montarTd(dadosAluno.nome, "info-nome"));
+            alunoTr.appendChild(montarTd(dadosAluno.idade, "info-idade"));
+            return alunoTr;
+        }
+
+        function montarTd(dado, classe) {
+            var td = document.createElement("td");
+            td.textContent = dado;
+            td.classList.add(classe);
+            return td;
+        }
+
+        function montarFormulario() {
+            var formulario = document.createElement("form");
+            formulario.classList.add("form-cadastrar");
+            // Dá pra dar uma limpada. Depois
+            var inputMatricula = document.createElement("input");
+            inputMatricula.classList.add("input-matricula");
+            inputMatricula.setAttribute("type", "text");
+            inputMatricula.setAttribute("maxlength", "8");
+            inputMatricula.setAttribute("placeholder", "Matrícula");
+            inputMatricula.setAttribute("id", "matricula");
+            inputMatricula.setAttribute("style", "margin: 0px 6px 8px 0px");
+            inputMatricula.addEventListener("input", function (event) {
+                formatarMatricula(event);
+            });
+            formulario.appendChild(inputMatricula);
+
+            var inputNome = document.createElement("input");
+            inputNome.classList.add("input-nome");
+            inputNome.setAttribute("type", "text");
+            inputNome.setAttribute("maxlength", "100");
+            inputNome.setAttribute("placeholder", "Nome");
+            inputNome.setAttribute("id", "nome");
+            inputNome.setAttribute("style", "margin: 0px 6px 0px 2px");
+            formulario.appendChild(inputNome);
+
+            var inputIdade = document.createElement("input");
+            inputIdade.classList.add("input-idade");
+            inputIdade.setAttribute("type", "text");
+            inputIdade.setAttribute("maxlength", "3");
+            inputIdade.setAttribute("placeholder", "Idade");
+            inputIdade.setAttribute("id", "idade");
+            inputIdade.addEventListener("input", function (event) {
+                validarIdade(event);
+            });
+            formulario.appendChild(inputIdade);
+
+            var espaco = document.createElement("p");
+            espaco.classList.add("espaco");
+            formulario.appendChild(espaco);
+            return formulario;
+        }
+
     </script>
 </body>
 
