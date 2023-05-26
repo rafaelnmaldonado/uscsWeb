@@ -197,7 +197,7 @@
     </div>
 
     <script>
-        //document.onload = carregarDados(); // pesquisar no banco
+        document.onload = carregarDados();
 
         // Listeners
 
@@ -301,13 +301,16 @@
                         return;
                     }
                 }
-                /* Função para gravar no banco de dados vai ser invocada aqui
-                 * A alimentação do array "registros" é temporária; ele vai ser alimentado
-                 * na função de busca no banco de dados */
-                registros[registros.length] = dadosAluno;
+
+                postData('https://uscs-web-back.vercel.app/alunos', {
+                    "matricula": dadosAluno.matricula,
+                    "nome": dadosAluno.nome,
+                    "idade": dadosAluno.idade
+                  }).then(data => carregarDados());
+                
             };
-            carregarDados();
         }
+
 
         function adicionarFormulario(event) {
             event.preventDefault();
@@ -366,17 +369,20 @@
             var conteudoTabela = document.querySelector("#table-conteudo");
             var somaIdade = 0;
             removerFilhos(conteudoTabela);
-            for (let i = 0; i < registros.length; i++) {
-                var dadosAluno = registros[i];
-                var alunoTr = montarTr(dadosAluno);
-                conteudoTabela.appendChild(alunoTr);
-                somaIdade += parseInt(dadosAluno.idade);
-            };
-            if (registros.length > 0) {
-                document.getElementById("contador-alunos").innerHTML = "Total de Alunos: " + registros.length;
-                document.getElementById("media-idades").innerHTML = "Média de Idades: "
-                    + (registros.length > 0 ? (somaIdade / registros.length).toFixed(2) : 0);
-            }
+            getData('https://uscs-web-back.vercel.app/alunos').then((data) => {
+                for (let i = 0; i < data.length; i++) {
+                    var dadosAluno = data[i];
+                    var alunoTr = montarTr(dadosAluno);
+                    conteudoTabela.appendChild(alunoTr);
+                    somaIdade += parseInt(dadosAluno[3]);
+                };
+
+                if (data.length > 0) {
+                    document.getElementById("contador-alunos").innerHTML = "Total de Alunos: " + data.length;
+                    document.getElementById("media-idades").innerHTML = "Média de Idades: "
+                        + (data.length > 0 ? (somaIdade / data.length).toFixed(2) : 0);
+                }
+            })
         }
 
 
@@ -441,10 +447,10 @@
         function montarTr(dadosAluno) {
             var alunoTr = document.createElement("tr");
             alunoTr.classList.add("tr-dados");
-            let matricula = dadosAluno.matricula.substring(0, 6) + "-" + dadosAluno.matricula.substring(6);
+            let matricula = dadosAluno[1].toString().substring(0, 6) + "-" + dadosAluno[1].toString().substring(6);
             alunoTr.appendChild(montarTd(matricula, "info-matricula"));
-            alunoTr.appendChild(montarTd(dadosAluno.nome, "info-nome"));
-            alunoTr.appendChild(montarTd(dadosAluno.idade, "info-idade"));
+            alunoTr.appendChild(montarTd(dadosAluno[2], "info-nome"));
+            alunoTr.appendChild(montarTd(dadosAluno[3].toString(), "info-idade"));
             return alunoTr;
         }
 
@@ -496,6 +502,41 @@
             formulario.appendChild(espaco);
             return formulario;
         }
+
+        async function getData(url = "") {
+            // Default options are marked with *
+            const response = await fetch(url, {
+              method: "GET", // *GET, POST, PUT, DELETE, etc.
+              mode: "cors", // no-cors, *cors, same-origin
+              cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+              credentials: "same-origin", // include, *same-origin, omit
+              headers: {
+                "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              redirect: "follow", // manual, *follow, error
+              referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            });
+            return response.json(); // parses JSON response into native JavaScript objects
+          }
+
+        async function postData(url = "", data = {}) {
+            // Default options are marked with *
+            const response = await fetch(url, {
+              method: "POST", // *GET, POST, PUT, DELETE, etc.
+              mode: "cors", // no-cors, *cors, same-origin
+              cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+              credentials: "same-origin", // include, *same-origin, omit
+              headers: {
+                "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              redirect: "follow", // manual, *follow, error
+              referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+              body: JSON.stringify(data), // body data type must match "Content-Type" header
+            });
+            return response.json(); // parses JSON response into native JavaScript objects
+          }
 
     </script>
 </body>
