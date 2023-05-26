@@ -341,37 +341,44 @@
         function ordernarPorNome(event) {
             document.getElementById("media-idades").style.display = "none";
 
-            //
+            carregarDados(2);
         }
 
         function ordernarPorMatricula(event) {
             document.getElementById("media-idades").style.display = "none";
 
-            //
+            carregarDados(1);
         }
 
         function ordernarPorCadastro(event) {
             document.getElementById("media-idades").style.display = "none";
 
-            //
+            carregarDados();
         }
 
         function ordernarPorSobrenome(event) {
             document.getElementById("media-idades").style.display = "block";
 
-            //
+            carregarDados(0, true);
         }
 
 
         // Funcionalidades
 
-        function carregarDados() {
+        function carregarDados(sort = 0, sobrenome = false) {
             var conteudoTabela = document.querySelector("#table-conteudo");
             var somaIdade = 0;
             removerFilhos(conteudoTabela);
             getData('https://uscs-web-back.vercel.app/alunos').then((data) => {
+                
+                if (sort) data.sort(function(a,b){return a[sort].toString().localeCompare(b[sort]);});
+
                 for (let i = 0; i < data.length; i++) {
                     var dadosAluno = data[i];
+                    if (sobrenome) {
+                        let n = dadosAluno[2].split(" ");
+                        dadosAluno[2] = n[n.length - 1];
+                    }
                     var alunoTr = montarTr(dadosAluno);
                     conteudoTabela.appendChild(alunoTr);
                     somaIdade += parseInt(dadosAluno[3]);
@@ -536,7 +543,28 @@
               body: JSON.stringify(data), // body data type must match "Content-Type" header
             });
             return response.json(); // parses JSON response into native JavaScript objects
-          }
+        }
+
+        function sortJsonArrayByProperty(objArray, prop, direction){
+            if (arguments.length<2) throw new Error("sortJsonArrayByProp requires 2 arguments");
+            var direct = arguments.length>2 ? arguments[2] : 1; //Default to ascending
+        
+            if (objArray && objArray.constructor===Array){
+                var propPath = (prop.constructor===Array) ? prop : prop.split(".");
+                objArray.sort(function(a,b){
+                    for (var p in propPath){
+                        if (a[propPath[p]] && b[propPath[p]]){
+                            a = a[propPath[p]];
+                            b = b[propPath[p]];
+                        }
+                    }
+                    // convert numeric strings to integers
+                    a = a.match(/^\d+$/) ? +a : a;
+                    b = b.match(/^\d+$/) ? +b : b;
+                    return ( (a < b) ? -1*direct : ((a > b) ? 1*direct : 0) );
+                });
+            }
+        }
 
     </script>
 </body>
